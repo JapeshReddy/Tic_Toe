@@ -8,19 +8,19 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sandcastle": "npx tsx .sandcastle/main.ts"
   },
   "dependencies": {
-    "@ai-hero/sandcastle": "^0.12.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
     "motion": "^13.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@ai-hero/sandcastle": "^0.12.0",
     "@vitejs/plugin-react": "^6.1.1",
     "vite": "^8.3.0",
     "vitest": "^5.0.0"

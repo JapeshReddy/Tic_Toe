@@ -1,6 +1,6 @@
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
-import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import { RestartIcon } from './icons'
 import { GAME_MODES } from '../utils/constants'
 import MoveHistory from './MoveHistory'
 
@@ -18,7 +18,7 @@ export default function GameControls({
     <Stack spacing={2} sx={{ width: '100%' }} alignItems="center">
       <Button
         variant="contained"
-        startIcon={<RestartAltIcon />}
+        startIcon={<RestartIcon />}
         onClick={onReset}
       >
         New Game
