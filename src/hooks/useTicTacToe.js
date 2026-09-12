@@ -61,8 +61,14 @@ export function useTicTacToe() {
   const requestReset = useCallback(() => {
     dispatch({ type: 'REQUEST_RESET' })
   }, [])
-  const signIn = useCallback(() => {
-    dispatch({ type: 'SIGN_IN' })
+  // Signing in is a Delivery: pressing the button starts it, and it hands over
+  // to the game when it arrives. How long the middle takes is the login
+  // screen's business, not the game's.
+  const startDelivery = useCallback(() => {
+    dispatch({ type: 'START_DELIVERY' })
+  }, [])
+  const arriveDelivery = useCallback(() => {
+    dispatch({ type: 'DELIVERY_ARRIVED' })
   }, [])
   const requestSignOut = useCallback(() => {
     dispatch({ type: 'REQUEST_SIGN_OUT' })
@@ -91,6 +97,7 @@ export function useTicTacToe() {
     difficulty: state.difficulty,
     isComputerTurn,
     isSignedIn,
+    delivery: state.delivery,
     confirmOpen: state.confirmOpen,
     confirmIntent: state.confirmIntent,
     snackbarOpen: state.snackbarOpen,
@@ -98,7 +105,8 @@ export function useTicTacToe() {
     jumpTo,
     setConfig,
     requestReset,
-    signIn,
+    startDelivery,
+    arriveDelivery,
     requestSignOut,
     confirmPending,
     cancelPending,

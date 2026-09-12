@@ -1,13 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { initialState, reducer } from './gameReducer'
-import { CONFIRM_INTENTS, DIFFICULTIES, GAME_MODES, PHASES } from './constants'
+import {
+  CONFIRM_INTENTS,
+  DELIVERY_STATES,
+  DIFFICULTIES,
+  GAME_MODES,
+  PHASES,
+} from './constants'
 
 // The rules the UI gates on: where the app is, and what each destructive
 // action does to the board. Plain vitest, no DOM — the same seam the game
 // logic and the AI are tested at.
 
 const play = (state, index) => reducer(state, { type: 'MOVE', index })
-const signedIn = () => reducer(initialState, { type: 'SIGN_IN' })
+const startDelivery = (state) => reducer(state, { type: 'START_DELIVERY' })
+const arrive = (state) => reducer(state, { type: 'DELIVERY_ARRIVED' })
+// Signing in is a Delivery: it runs, then the game replaces the login card.
+const signedIn = () => arrive(startDelivery(initialState))
 
 describe('the phase gate', () => {
   it('starts on the login screen with an untouched board', () => {
@@ -22,6 +31,41 @@ describe('the phase gate', () => {
   })
 })
 
+// The coarse states the login screen gates on. Anything finer — percentage, van
+// position, Dot arcs — is choreography and is not modelled here (ADR-0004).
+describe('the Delivery', () => {
+  it('starts at rest on the login screen', () => {
+    expect(initialState.delivery).toBe(DELIVERY_STATES.IDLE)
+  })
+
+  it('stays on the login screen while it is under way', () => {
+    const state = startDelivery(initialState)
+
+    expect(state.delivery).toBe(DELIVERY_STATES.DELIVERING)
+    expect(state.phase).toBe(PHASES.LOGIN)
+  })
+
+  it('ignores a second press while one is under way', () => {
+    const delivering = startDelivery(initialState)
+
+    expect(startDelivery(delivering)).toBe(delivering)
+  })
+
+  it('shows the game once it has arrived', () => {
+    const state = arrive(startDelivery(initialState))
+
+    expect(state.delivery).toBe(DELIVERY_STATES.ARRIVED)
+    expect(state.phase).toBe(PHASES.GAME)
+  })
+
+  it('ignores an arrival with no Delivery under way', () => {
+    const state = arrive(initialState)
+
+    expect(state).toBe(initialState)
+    expect(state.phase).toBe(PHASES.LOGIN)
+  })
+})
+
 describe('signing out', () => {
   it('leaves an untouched game immediately, with no confirmation', () => {
     const state = reducer(signedIn(), { type: 'REQUEST_SIGN_OUT' })
@@ -29,6 +73,7 @@ describe('signing out', () => {
     expect(state.phase).toBe(PHASES.LOGIN)
     expect(state.confirmOpen).toBe(false)
     expect(state.snackbarOpen).toBe(false)
+    expect(state.delivery).toBe(DELIVERY_STATES.IDLE)
   })
 
   it('asks first when the board has a move on it', () => {
@@ -59,9 +104,10 @@ describe('signing out', () => {
     expect(out.history[out.currentMove].some(Boolean)).toBe(false)
     // The phase change is its own acknowledgement, so no "new game" toast.
     expect(out.snackbarOpen).toBe(false)
-    expect(reducer(out, { type: 'SIGN_IN' }).history[0].some(Boolean)).toBe(
-      false,
-    )
+    // Nothing about the finished Delivery carries over, so the next sign-in
+    // plays the whole thing again (ADR-0002).
+    expect(out.delivery).toBe(DELIVERY_STATES.IDLE)
+    expect(signedIn().history[0].some(Boolean)).toBe(false)
   })
 
   it('keeps the chosen configuration, so only the board is lost', () => {

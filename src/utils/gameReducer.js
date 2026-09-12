@@ -4,6 +4,7 @@
 import {
   BOARD_SIZE,
   CONFIRM_INTENTS,
+  DELIVERY_STATES,
   DIFFICULTIES,
   GAME_MODES,
   PHASES,
@@ -20,6 +21,7 @@ export const initialState = {
   humanSymbol: PLAYERS.X,
   difficulty: DIFFICULTIES.HARD,
   phase: PHASES.LOGIN,
+  delivery: DELIVERY_STATES.IDLE,
   confirmOpen: false,
   // Which action the open confirmation belongs to. Meaningful only while
   // confirmOpen is true, but always left at RESET so it never goes stale.
@@ -53,6 +55,9 @@ function signOut(state) {
     ...startFreshGame(state),
     snackbarOpen: false,
     phase: PHASES.LOGIN,
+    // A finished Delivery leaves nothing behind, so the next sign-in plays the
+    // whole thing from the start rather than resuming or skipping (ADR-0002).
+    delivery: DELIVERY_STATES.IDLE,
   }
 }
 
@@ -107,8 +112,21 @@ export function reducer(state, action) {
       return startFreshGame(state)
     }
 
-    case 'SIGN_IN':
-      return { ...state, phase: PHASES.GAME }
+    case 'START_DELIVERY':
+      // Only from rest. A second press while one is under way starts nothing
+      // further, and returns the very same state so nothing re-renders.
+      if (state.delivery !== DELIVERY_STATES.IDLE) return state
+      return { ...state, delivery: DELIVERY_STATES.DELIVERING }
+
+    case 'DELIVERY_ARRIVED':
+      // Arrival is what puts the game on screen; without a Delivery under way
+      // there is nothing to arrive.
+      if (state.delivery !== DELIVERY_STATES.DELIVERING) return state
+      return {
+        ...state,
+        delivery: DELIVERY_STATES.ARRIVED,
+        phase: PHASES.GAME,
+      }
 
     case 'REQUEST_SIGN_OUT': {
       if (isBoardDirty(state)) {

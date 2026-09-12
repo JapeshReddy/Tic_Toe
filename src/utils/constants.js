@@ -25,6 +25,15 @@ export const PHASES = {
   GAME: 'game',
 }
 
+// The Delivery's coarse states: at rest, under way, and arrived (the game is
+// showing). Everything finer is choreography and lives in motion values rather
+// than in React state (ADR-0004).
+export const DELIVERY_STATES = {
+  IDLE: 'idle',
+  DELIVERING: 'delivering',
+  ARRIVED: 'arrived',
+}
+
 // What the shared confirmation dialog will carry out if it is confirmed.
 export const CONFIRM_INTENTS = {
   RESET: 'reset',
@@ -36,6 +45,11 @@ export const MEDIUM_BLUNDER_RATE = 0.3
 
 // Delay before the computer plays, so its move feels deliberate (ms).
 export const COMPUTER_MOVE_DELAY = 500
+
+// Stands in for the Delivery's choreography until later tickets fill it in: long
+// enough that a Delivery is unmistakably under way, short enough that nobody is
+// left waiting on it (ms).
+export const DELIVERY_PAUSE_MS = 900
 
 // All winning index triplets on a 3x3 board.
 export const WINNING_LINES = [

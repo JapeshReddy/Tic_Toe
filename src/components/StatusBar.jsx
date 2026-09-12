@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import { AnimatePresence, motion } from 'motion/react'
@@ -25,9 +26,21 @@ function getStatus({ winner, isDraw, currentPlayer, isComputerTurn }) {
 
 export default function StatusBar(props) {
   const { symbol, color, message } = getStatus(props)
+  const statusRef = useRef(null)
+
+  // The game appears exactly when a Delivery arrives, so mounting here is the
+  // moment to move focus: a keyboard or screen-reader user should be handed the
+  // game where the login form was, not dropped at the top of the document.
+  useEffect(() => {
+    statusRef.current?.focus()
+  }, [])
 
   return (
     <MotionPaper
+      ref={statusRef}
+      // Reachable by script but not a tab stop of its own: the bar is announced
+      // on arrival, not something you tab through on the way to the board.
+      tabIndex={-1}
       variant="outlined"
       role="status"
       aria-live="polite"

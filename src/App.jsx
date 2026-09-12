@@ -81,7 +81,11 @@ export default function App() {
               />
             </Stack>
           ) : (
-            <LoginScreen onSignIn={game.signIn} />
+            <LoginScreen
+              delivery={game.delivery}
+              onSignIn={game.startDelivery}
+              onArrive={game.arriveDelivery}
+            />
           )}
         </Container>
 
