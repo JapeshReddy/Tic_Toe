@@ -1,4 +1,6 @@
-node_modules/
+# No trailing slash: onSandboxReady makes this a symlink into the image,
+# and a directory-only pattern would leave it untracked and committable.
+node_modules
 dist/
 .env
 .env.local

@@ -49,6 +49,28 @@ Pick the highest-priority open issue that is not blocked by another open issue.
    - Note any blockers for the next iteration
 6. **Close** — close the issue with `gh issue close <ID> --comment "<summary>"`, where the summary is a sentence or two accurately describing what you actually did, including anything you deliberately left out. Write it fresh each time; do not paste a fixed phrase.
 
+## This workspace
+
+Two constraints that are not obvious from the code, and that have each already
+cost a wasted iteration.
+
+**Dependencies are pre-installed. Never install anything.** They are baked into
+the sandbox image and `node_modules` is a symlink to them. `npm install` does
+not understand that symlink: it replaces it with a real directory inside a bind
+mount that reaches back to a Windows filesystem, which is both extremely slow
+and discarded when the iteration ends. If you genuinely need a package, do not
+install it — say so in the issue comment and stop. If `node_modules` is ever
+broken, do not reinstall; restore it with:
+
+    rm -rf node_modules && ln -sfn /home/agent/deps/node_modules node_modules
+
+**There is no DOM test environment, and one cannot be added.** jsdom does not
+import within vitest's 60-second worker-start timeout on this mount, and
+happy-dom is no better. This is measured and recorded in ADR-0005 — read it
+before reaching for a DOM. Test whatever can be expressed as a pure function;
+for anything that only exists once rendered, build it correctly and say in the
+issue comment that it is unverified.
+
 ## Rules
 
 - Work on **one issue per iteration**. Do not attempt multiple issues in a single iteration.
