@@ -276,3 +276,20 @@ Always:
 * Follow the project structure.
 * Maintain consistency.
 * Prefer readability over complexity.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `JapeshReddy/Tic_Toe`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default triage labels, plus `sandcastle` as a separate implementation-routing
+signal that `/triage` never applies automatically. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
