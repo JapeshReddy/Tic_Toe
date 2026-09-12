@@ -9,6 +9,8 @@ import { motion } from 'motion/react'
 import { DELIVERY_STATES } from '../utils/constants'
 import { useDelivery } from '../hooks/useDelivery'
 import { SNAP } from '../utils/motion'
+import { ROAD_COLORS, ROAD_HEIGHT } from '../utils/road'
+import Road from './Road'
 
 // The login screen as a real card and a real form. Nothing typed is ever
 // checked, so submitting always starts a Delivery, empty fields included.
@@ -76,9 +78,11 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
           slotProps={{ htmlInput: lock }}
         />
 
-        {/* Pressing again while a Delivery runs starts nothing, so the button
-            stays enabled rather than disabling itself out from under the
-            pointer. It stays named and says it is busy. */}
+        {/* The button is the Road: a plain label at rest, and once a Delivery
+            starts, a dark strip the Van rolls onto. Pressing it again while a
+            Delivery runs starts nothing, so it stays enabled rather than
+            disabling itself out from under the pointer. It stays named and
+            says it is busy. */}
         <Button
           type="submit"
           variant="contained"
@@ -86,6 +90,23 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
           fullWidth
           aria-label={isDelivering ? 'Signing in' : undefined}
           aria-busy={isDelivering || undefined}
+          sx={{
+            position: 'relative',
+            display: 'block',
+            overflow: 'hidden',
+            p: 0,
+            // The Road's own colours, fixed rather than themed, so the Van and
+            // the percentage look the same in either mode (ADR-0003). The
+            // border is the one themed part: in dark mode the Road and the card
+            // it sits on are near neighbours, and the edge is what separates
+            // them.
+            minHeight: ROAD_HEIGHT,
+            backgroundColor: ROAD_COLORS.surface,
+            color: ROAD_COLORS.ink,
+            border: '2px solid',
+            borderColor: 'divider',
+            '&:hover': { backgroundColor: ROAD_COLORS.surface },
+          }}
         >
           {/* The label fades rather than unmounts, so the Road has something to
               clear and the button is never left with no text at all. */}
@@ -93,9 +114,18 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
             component={motion.span}
             animate={{ opacity: isDelivering ? 0 : 1 }}
             transition={SNAP}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             Log in
           </Box>
+
+          <Road isDelivering={isDelivering} />
         </Button>
 
         <Typography variant="body2" color="text.secondary">

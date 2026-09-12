@@ -2,10 +2,11 @@ import { createTheme } from '@mui/material/styles'
 
 // Typeface roles. Jost (geometric, Futura-lineage) carries the Bauhaus display
 // voice; Archivo handles UI text; Space Mono marks anything data-like (section
-// labels, move numbers).
-const DISPLAY_FONT = '"Jost", "Century Gothic", sans-serif'
-const BODY_FONT = '"Archivo", "Helvetica Neue", Arial, sans-serif'
-const MONO_FONT = '"Space Mono", "SFMono-Regular", Consolas, monospace'
+// labels, move numbers, the Delivery's percentage). Exported because the Road
+// is drawn outside the theme but still speaks in the same three voices.
+export const DISPLAY_FONT = '"Jost", "Century Gothic", sans-serif'
+export const BODY_FONT = '"Archivo", "Helvetica Neue", Arial, sans-serif'
+export const MONO_FONT = '"Space Mono", "SFMono-Regular", Consolas, monospace'
 
 // De Stijl primaries. X always reads red, O always reads blue, everywhere; the
 // grid rules are the "line" colour (hard black in light, paper-white in dark);

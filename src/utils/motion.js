@@ -11,12 +11,16 @@ export const DURATIONS = {
   winBar: 0.32,
   status: 0.18,
   historyItem: 0.16,
+  // The Van's roll in from off the Road: long enough to read as a vehicle
+  // arriving under its own power, short enough that nobody waits on it.
+  vanRoll: 0.6,
 }
 
 export const SNAP = { duration: DURATIONS.mark, ease: SNAP_EASE }
 export const WIN_BAR = { duration: DURATIONS.winBar, ease: SNAP_EASE }
 export const STATUS = { duration: DURATIONS.status, ease: SNAP_EASE }
 export const HISTORY_ITEM = { duration: DURATIONS.historyItem, ease: SNAP_EASE }
+export const VAN_ROLL = { duration: DURATIONS.vanRoll, ease: SNAP_EASE }
 
 // A mark is stamped onto the board: it arrives rotated and undersized, then
 // snaps square. X and O share the motion so the board reads consistently.

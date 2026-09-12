@@ -43,6 +43,12 @@ describe('the login card', () => {
     expect(html).not.toContain('readonly')
     expect(html).not.toContain('aria-disabled')
   })
+
+  it('names Kartel once, on the Van, and nowhere else on the screen', () => {
+    // The brand belongs to the Van's livery alone; the product on screen is
+    // Tic·Tac·Toe, and a second mention would mean it had leaked into copy.
+    expect(html.match(/Kartel/g)).toHaveLength(1)
+  })
 })
 
 // The card as it stands mid-Delivery: static markup for a state the reducer
