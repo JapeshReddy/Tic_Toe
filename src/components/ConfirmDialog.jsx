@@ -5,14 +5,24 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
-export default function ConfirmDialog({ open, onConfirm, onCancel }) {
+// Confirmation prompt with caller-supplied copy, so each destructive action
+// can word its own warning.
+export default function ConfirmDialog({
+  open,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+}) {
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="confirm-reset-title">
-      <DialogTitle id="confirm-reset-title">Start a new game?</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby="confirm-dialog-title"
+    >
+      <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Your current game will be lost. This cannot be undone.
-        </DialogContentText>
+        <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>

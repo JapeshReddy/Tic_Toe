@@ -62,6 +62,8 @@ export default function App() {
 
         <ConfirmDialog
           open={game.confirmOpen}
+          title="Start a new game?"
+          message="Your current game will be lost. This cannot be undone."
           onConfirm={game.confirmReset}
           onCancel={game.cancelReset}
         />
