@@ -69,3 +69,9 @@ _Avoid_: failure, error, glitch, retry, rejection
 The final stage, in which the Van passes the end of the Road, fades, and the
 game page replaces the login card.
 _Avoid_: completion, success, done
+
+**Skip**:
+Ending a Delivery early and going straight to the game, with nothing
+abbreviated. Escape does it, and so does the Skip control. Reduced motion is
+never a Skip: there is no Delivery running to end.
+_Avoid_: cancel, abort, bypass, fast-forward, shortened animation

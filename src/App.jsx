@@ -84,6 +84,7 @@ export default function App() {
             <LoginScreen
               delivery={game.delivery}
               onSignIn={game.startDelivery}
+              onSkip={game.skipDelivery}
               onArrive={game.arriveDelivery}
             />
           )}

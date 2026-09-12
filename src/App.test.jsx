@@ -49,6 +49,10 @@ describe('the login card', () => {
     // Tic·Tac·Toe, and a second mention would mean it had leaked into copy.
     expect(html.match(/Kartel/g)).toHaveLength(1)
   })
+
+  it('offers no way out of a Delivery that is not running', () => {
+    expect(html).not.toContain('Skip')
+  })
 })
 
 // The Loading layer's place in the card. What it holds and in whose colours is
@@ -80,6 +84,7 @@ describe('the login card during a Delivery', () => {
     <LoginScreen
       delivery={DELIVERY_STATES.DELIVERING}
       onSignIn={() => {}}
+      onSkip={() => {}}
       onArrive={() => {}}
     />,
   )
@@ -100,5 +105,11 @@ describe('the login card during a Delivery', () => {
     // Read-only, not disabled: a disabled field loses focus, and focus has to
     // survive a Delivery so a keyboard user is not dropped at the document top.
     expect(html).not.toMatch(/<input[^>]*\sdisabled/)
+  })
+
+  it('leaves the Skip control out until it has earned its place', () => {
+    // It fades in a couple of seconds in, once the Van is the thing being
+    // watched; at the moment a Delivery starts there is no exit on the card.
+    expect(html).not.toContain('Skip')
   })
 })

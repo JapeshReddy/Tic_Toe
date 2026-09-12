@@ -23,6 +23,10 @@ export const DURATIONS = {
   cargoDoors: 0.45,
   fieldDim: 0.3,
   loadingPause: 0.35,
+  // How long a Delivery runs before a way out of it exists. Late enough that a
+  // first-time visitor has the Van to watch before an exit appears beside it,
+  // early enough that nobody is held by the rest of the choreography.
+  skipControl: 2,
 }
 
 export const SNAP = { duration: DURATIONS.mark, ease: SNAP_EASE }

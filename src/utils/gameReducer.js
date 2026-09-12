@@ -128,6 +128,19 @@ export function reducer(state, action) {
         phase: PHASES.GAME,
       }
 
+    case 'SKIP_DELIVERY':
+      // The way out of a Delivery, and the way past ever running one: Escape
+      // and the Skip control end one early, and reduced motion means there was
+      // never one to end. All three land in the same place, with nothing left
+      // half-run. Nothing is recorded about the skip, so the next sign-in plays
+      // the whole thing again (ADR-0002).
+      if (state.delivery === DELIVERY_STATES.ARRIVED) return state
+      return {
+        ...state,
+        delivery: DELIVERY_STATES.ARRIVED,
+        phase: PHASES.GAME,
+      }
+
     case 'REQUEST_SIGN_OUT': {
       if (isBoardDirty(state)) {
         return requestConfirmation(state, CONFIRM_INTENTS.SIGN_OUT, {})

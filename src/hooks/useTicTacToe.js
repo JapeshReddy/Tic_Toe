@@ -70,6 +70,11 @@ export function useTicTacToe() {
   const arriveDelivery = useCallback(() => {
     dispatch({ type: 'DELIVERY_ARRIVED' })
   }, [])
+  // Leaving a Delivery early, or never being given one: the login card decides
+  // which, the reducer decides where both of them land.
+  const skipDelivery = useCallback(() => {
+    dispatch({ type: 'SKIP_DELIVERY' })
+  }, [])
   const requestSignOut = useCallback(() => {
     dispatch({ type: 'REQUEST_SIGN_OUT' })
   }, [])
@@ -107,6 +112,7 @@ export function useTicTacToe() {
     requestReset,
     startDelivery,
     arriveDelivery,
+    skipDelivery,
     requestSignOut,
     confirmPending,
     cancelPending,

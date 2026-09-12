@@ -15,6 +15,7 @@ import {
 const play = (state, index) => reducer(state, { type: 'MOVE', index })
 const startDelivery = (state) => reducer(state, { type: 'START_DELIVERY' })
 const arrive = (state) => reducer(state, { type: 'DELIVERY_ARRIVED' })
+const skipDelivery = (state) => reducer(state, { type: 'SKIP_DELIVERY' })
 // Signing in is a Delivery: it runs, then the game replaces the login card.
 const signedIn = () => arrive(startDelivery(initialState))
 
@@ -63,6 +64,42 @@ describe('the Delivery', () => {
 
     expect(state).toBe(initialState)
     expect(state.phase).toBe(PHASES.LOGIN)
+  })
+})
+
+// The ways out of a Delivery. Escape and the Skip control cut one short;
+// reduced motion means there was never one to cut. All three are the same
+// transition, so they are pinned here rather than in the login card.
+describe('skipping a Delivery', () => {
+  it('cuts a Delivery under way straight to the game', () => {
+    const state = skipDelivery(startDelivery(initialState))
+
+    expect(state.delivery).toBe(DELIVERY_STATES.ARRIVED)
+    expect(state.phase).toBe(PHASES.GAME)
+  })
+
+  it('takes a Delivery that never started straight to the game', () => {
+    // Reduced motion: the game arrives without the Delivery ever being under
+    // way, so no part of it is ever drawn.
+    const state = skipDelivery(initialState)
+
+    expect(state.delivery).toBe(DELIVERY_STATES.ARRIVED)
+    expect(state.phase).toBe(PHASES.GAME)
+  })
+
+  it('has nothing left to skip once the game is up', () => {
+    const arrived = skipDelivery(startDelivery(initialState))
+
+    expect(skipDelivery(arrived)).toBe(arrived)
+  })
+
+  it('does not persist: the next sign-in runs the whole Delivery', () => {
+    const out = reducer(skipDelivery(startDelivery(initialState)), {
+      type: 'REQUEST_SIGN_OUT',
+    })
+
+    expect(out.delivery).toBe(DELIVERY_STATES.IDLE)
+    expect(startDelivery(out).delivery).toBe(DELIVERY_STATES.DELIVERING)
   })
 })
 
