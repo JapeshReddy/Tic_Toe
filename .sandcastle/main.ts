@@ -22,21 +22,19 @@ await run({
   promptFile: "./.sandcastle/prompt.md",
 
   // Maximum number of iterations (agent invocations) to run in a session.
-  // Each iteration works on a single issue. Kept at 1 while the DeepSeek
-  // backend is unproven — raise it once a single-shot run looks trustworthy.
-  maxIterations: 1,
+  // Each iteration works on a single issue.
+  maxIterations: 10,
 
   // Branch strategy — merge-to-head creates a temporary branch for the agent
-  // to work on, then merges the result back to HEAD when the run completes.
-  // This is required when using copyToWorktree, since head mode bind-mounts
-  // the host directory directly (no worktree to copy into).
+  // to work on, then merges the result back to HEAD when the run completes,
+  // so the agent never touches the host working directory.
   branchStrategy: { type: "merge-to-head" },
 
-  // Copy node_modules from the host into the worktree before the sandbox
-  // starts. This avoids a full npm install from scratch on every iteration.
-  // The onSandboxReady hook still runs npm install as a safety net to handle
-  // platform-specific binaries and any packages added since the last copy.
-  copyToWorktree: ["node_modules"],
+  // NOTE: copyToWorktree is deliberately not used. It seeds the worktree with
+  // the host's node_modules to skip a cold install, but it shells out to the
+  // Unix `cp`, which does not exist on a Windows host — the run fails with
+  // "spawn cp ENOENT" before the sandbox starts. onSandboxReady installs
+  // dependencies inside the container instead.
 
   // Lifecycle hooks — commands grouped by where they run (host or sandbox).
   hooks: {
@@ -44,7 +42,15 @@ await run({
       // onSandboxReady runs once after the sandbox is initialised and the repo is
       // synced in, before the agent starts. Use it to install dependencies or run
       // any other setup steps your project needs.
-      onSandboxReady: [{ command: "npm install" }],
+      //
+      // npm ci rather than npm install: it installs straight from the lockfile,
+      // which is both faster and reproducible. The timeout is raised well above
+      // the 60s default because this is a cold install inside a fresh container
+      // (no node_modules is copied in — see the note above), and MUI plus Vite
+      // take longer than a minute to fetch on a first run.
+      onSandboxReady: [
+        { command: "npm ci --no-audit --fund=false", timeoutMs: 600000 },
+      ],
     },
   },
 });
