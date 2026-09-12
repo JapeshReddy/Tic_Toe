@@ -31,6 +31,25 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 # Add Claude to PATH
 ENV PATH="/home/agent/.local/bin:$PATH"
 
+# Pre-install the project's dependencies into the image, OUTSIDE the workspace.
+#
+# Sandcastle rebuilds the sandbox for every iteration, so an onSandboxReady
+# `npm ci` was paid once per ticket — measured between 205s and 383s a time,
+# because the workspace is a bind mount reaching back to the Windows filesystem
+# across Docker Desktop's WSL2 bridge. Installing here instead puts node_modules
+# on the container's own overlay filesystem, where it costs nothing at runtime.
+#
+# This must live outside /home/agent/workspace: the worktree bind-mount lands on
+# that path at container start and would shadow anything installed there.
+# onSandboxReady symlinks it in — see .sandcastle/main.ts.
+#
+# Rebuild the image whenever package.json or package-lock.json changes, or the
+# agent runs against stale dependencies:
+#   docker build -t sandcastle:tictactoe -f .sandcastle/Dockerfile --build-arg AGENT_UID=1000 --build-arg AGENT_GID=1000 .
+WORKDIR /home/agent/deps
+COPY --chown=${AGENT_UID}:${AGENT_GID} package.json package-lock.json ./
+RUN npm ci --no-audit --fund=false
+
 WORKDIR /home/agent
 
 # In worktree sandbox mode, Sandcastle bind-mounts the git worktree at /home/agent/workspace

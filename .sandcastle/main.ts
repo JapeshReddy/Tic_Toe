@@ -40,16 +40,22 @@ await run({
   hooks: {
     sandbox: {
       // onSandboxReady runs once after the sandbox is initialised and the repo is
-      // synced in, before the agent starts. Use it to install dependencies or run
-      // any other setup steps your project needs.
+      // synced in, before the agent starts.
       //
-      // npm ci rather than npm install: it installs straight from the lockfile,
-      // which is both faster and reproducible. The timeout is raised well above
-      // the 60s default because this is a cold install inside a fresh container
-      // (no node_modules is copied in — see the note above), and MUI plus Vite
-      // take longer than a minute to fetch on a first run.
+      // Dependencies are baked into the image at /home/agent/deps rather than
+      // installed here. Sandcastle rebuilds the sandbox every iteration, so an
+      // npm ci in this hook was paid once per ticket — 205s to 383s a time,
+      // because the workspace is a bind mount back to the Windows filesystem.
+      // Symlinking the pre-installed tree in costs milliseconds instead.
+      //
+      // The trade: the image must be rebuilt when package.json or the lockfile
+      // changes, or the agent runs against stale dependencies. The build command
+      // is in .sandcastle/Dockerfile.
       onSandboxReady: [
-        { command: "npm ci --no-audit --fund=false", timeoutMs: 600000 },
+        {
+          command: "ln -sfn /home/agent/deps/node_modules node_modules",
+          timeoutMs: 30000,
+        },
       ],
     },
   },

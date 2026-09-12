@@ -1,0 +1,13 @@
+# The image only needs package.json and package-lock.json (see .sandcastle/Dockerfile).
+# Without this, the build context is every file in the repo — and over Docker
+# Desktop's Windows/WSL2 bridge that alone takes minutes.
+node_modules
+.git
+dist
+.sandcastle/logs
+.sandcastle/worktrees
+.agents
+.claude
+docs
+src
+*.log
