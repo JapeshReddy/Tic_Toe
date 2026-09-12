@@ -17,6 +17,20 @@ export const DIFFICULTIES = {
   HARD: 'hard',
 }
 
+// Where the app is: on the login screen, or in the game. There is no router —
+// the game is deliberately not addressable, so a URL can never bypass the
+// login screen.
+export const PHASES = {
+  LOGIN: 'login',
+  GAME: 'game',
+}
+
+// What the shared confirmation dialog will carry out if it is confirmed.
+export const CONFIRM_INTENTS = {
+  RESET: 'reset',
+  SIGN_OUT: 'signOut',
+}
+
 // Chance the medium AI plays a random move instead of the optimal one.
 export const MEDIUM_BLUNDER_RATE = 0.3
 

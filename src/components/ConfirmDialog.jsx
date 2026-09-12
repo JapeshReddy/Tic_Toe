@@ -6,11 +6,13 @@ import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 
 // Confirmation prompt with caller-supplied copy, so each destructive action
-// can word its own warning.
+// can word its own warning. The confirm button takes its label from the caller
+// too: a dialog reused for a second action must not offer to do the first one.
 export default function ConfirmDialog({
   open,
   title,
   message,
+  confirmLabel,
   onConfirm,
   onCancel,
 }) {
@@ -27,7 +29,7 @@ export default function ConfirmDialog({
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
         <Button onClick={onConfirm} variant="contained" autoFocus>
-          New Game
+          {confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>

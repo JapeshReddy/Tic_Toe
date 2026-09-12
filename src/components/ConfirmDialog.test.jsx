@@ -11,32 +11,25 @@ vi.mock('@mui/material/Dialog', () => ({
 
 const noop = () => {}
 
+const PROPS = {
+  title: 'Sign out?',
+  message: 'You will lose your game.',
+  confirmLabel: 'Sign Out',
+  onConfirm: noop,
+  onCancel: noop,
+}
+
 describe('ConfirmDialog', () => {
-  it('shows the title and message it is given', () => {
-    const html = renderToString(
-      <ConfirmDialog
-        open
-        title="Sign out?"
-        message="You will lose your game."
-        onConfirm={noop}
-        onCancel={noop}
-      />,
-    )
+  it('shows the title, message and confirm label it is given', () => {
+    const html = renderToString(<ConfirmDialog open {...PROPS} />)
 
     expect(html).toContain('Sign out?')
     expect(html).toContain('You will lose your game.')
+    expect(html).toContain('Sign Out')
   })
 
   it('renders nothing while closed', () => {
-    const html = renderToString(
-      <ConfirmDialog
-        open={false}
-        title="Sign out?"
-        message="You will lose your game."
-        onConfirm={noop}
-        onCancel={noop}
-      />,
-    )
+    const html = renderToString(<ConfirmDialog open={false} {...PROPS} />)
 
     expect(html).not.toContain('Sign out?')
     expect(html).not.toContain('You will lose your game.')

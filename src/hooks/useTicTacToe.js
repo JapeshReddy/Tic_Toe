@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react'
 import {
-  BOARD_SIZE,
   COMPUTER_MOVE_DELAY,
-  DIFFICULTIES,
   GAME_MODES,
+  PHASES,
   PLAYERS,
 } from '../utils/constants'
 import {
@@ -12,90 +11,9 @@ import {
   isDraw as checkDraw,
 } from '../utils/gameLogic'
 import { getComputerMove } from '../utils/ai'
+import { initialState, reducer } from '../utils/gameReducer'
 
-const createEmptyBoard = () => Array(BOARD_SIZE).fill(null)
-
-const initialState = {
-  history: [createEmptyBoard()],
-  currentMove: 0,
-  gameMode: GAME_MODES.HOT_SEAT,
-  humanSymbol: PLAYERS.X,
-  difficulty: DIFFICULTIES.HARD,
-  confirmOpen: false,
-  snackbarOpen: false,
-  // Pending config change awaiting confirmation, or null.
-  pendingConfig: null,
-}
-
-// Starts a clean game, optionally applying config overrides, and flags the
-// "new game" snackbar.
-function startFreshGame(state, overrides = {}) {
-  return {
-    ...state,
-    history: [createEmptyBoard()],
-    currentMove: 0,
-    confirmOpen: false,
-    pendingConfig: null,
-    snackbarOpen: true,
-    ...overrides,
-  }
-}
-
-// Places `player`'s mark at `index`, truncating any future history when
-// playing from a past move. Returns unchanged state for invalid moves.
-function applyMove(state, index) {
-  const board = state.history[state.currentMove]
-  const { winner } = calculateWinner(board)
-  if (board[index] !== null || winner) return state
-
-  const nextBoard = board.slice()
-  nextBoard[index] = getCurrentPlayer(board)
-  const history = state.history.slice(0, state.currentMove + 1)
-  history.push(nextBoard)
-  return { ...state, history, currentMove: history.length - 1 }
-}
-
-function isBoardDirty(state) {
-  return state.history[state.currentMove].some((cell) => cell !== null)
-}
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'MOVE':
-      return applyMove(state, action.index)
-
-    case 'JUMP_TO':
-      return { ...state, currentMove: action.move }
-
-    case 'REQUEST_CONFIG': {
-      const change = { [action.key]: action.value }
-      if (isBoardDirty(state)) {
-        return { ...state, confirmOpen: true, pendingConfig: change }
-      }
-      return startFreshGame(state, change)
-    }
-
-    case 'REQUEST_RESET': {
-      if (isBoardDirty(state)) {
-        return { ...state, confirmOpen: true, pendingConfig: {} }
-      }
-      return startFreshGame(state)
-    }
-
-    case 'CONFIRM':
-      return startFreshGame(state, state.pendingConfig || {})
-
-    case 'CANCEL':
-      return { ...state, confirmOpen: false, pendingConfig: null }
-
-    case 'DISMISS_SNACKBAR':
-      return { ...state, snackbarOpen: false }
-
-    default:
-      return state
-  }
-}
-
+// Owns the game's React state; the rules themselves live in gameReducer.
 export function useTicTacToe() {
   const [state, dispatch] = useReducer(reducer, initialState)
 
@@ -108,9 +26,15 @@ export function useTicTacToe() {
   const currentPlayer = useMemo(() => getCurrentPlayer(board), [board])
   const isGameOver = Boolean(winner) || isDraw
 
+  const isSignedIn = state.phase === PHASES.GAME
+
   const computerSymbol =
     state.humanSymbol === PLAYERS.X ? PLAYERS.O : PLAYERS.X
+  // Gated on the phase as well: with no game on screen there is nothing for the
+  // computer to play, and a move made behind the login screen would be waiting
+  // on the board at the next sign-in.
   const isComputerTurn =
+    isSignedIn &&
     state.gameMode === GAME_MODES.VS_COMPUTER &&
     !isGameOver &&
     currentPlayer === computerSymbol
@@ -137,10 +61,16 @@ export function useTicTacToe() {
   const requestReset = useCallback(() => {
     dispatch({ type: 'REQUEST_RESET' })
   }, [])
-  const confirmReset = useCallback(() => {
+  const signIn = useCallback(() => {
+    dispatch({ type: 'SIGN_IN' })
+  }, [])
+  const requestSignOut = useCallback(() => {
+    dispatch({ type: 'REQUEST_SIGN_OUT' })
+  }, [])
+  const confirmPending = useCallback(() => {
     dispatch({ type: 'CONFIRM' })
   }, [])
-  const cancelReset = useCallback(() => {
+  const cancelPending = useCallback(() => {
     dispatch({ type: 'CANCEL' })
   }, [])
   const dismissSnackbar = useCallback(() => {
@@ -160,14 +90,18 @@ export function useTicTacToe() {
     humanSymbol: state.humanSymbol,
     difficulty: state.difficulty,
     isComputerTurn,
+    isSignedIn,
     confirmOpen: state.confirmOpen,
+    confirmIntent: state.confirmIntent,
     snackbarOpen: state.snackbarOpen,
     makeMove,
     jumpTo,
     setConfig,
     requestReset,
-    confirmReset,
-    cancelReset,
+    signIn,
+    requestSignOut,
+    confirmPending,
+    cancelPending,
     dismissSnackbar,
   }
 }

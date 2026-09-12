@@ -62,3 +62,14 @@ export function RestartIcon(props) {
     </LineIcon>
   )
 }
+
+// An open doorway with an arrow leaving through it: sign out.
+export function SignOutIcon(props) {
+  return (
+    <LineIcon {...props}>
+      <path d="M14 3H5v18h9" />
+      <line x1="10" y1="12" x2="21" y2="12" />
+      <polyline points="16 7 21 12 16 17" />
+    </LineIcon>
+  )
+}

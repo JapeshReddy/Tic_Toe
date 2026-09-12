@@ -6,8 +6,9 @@ import App from './App'
 // tests miss and a successful build does not — a bad hook call, a broken
 // provider tree, or a misused Motion API that only fails at render time.
 describe('App', () => {
-  it('renders without throwing', () => {
+  it('renders without throwing, opening on the login screen', () => {
     const html = renderToString(<App />)
-    expect(html).toContain('to play')
+    expect(html).toContain('Log in')
+    expect(html).not.toContain('to play')
   })
 })
