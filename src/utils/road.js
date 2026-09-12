@@ -6,10 +6,13 @@ import { PARCEL_KINDS } from './delivery'
 
 // The one surface the theme does not reach (ADR-0003): dark in both modes, so
 // the bone Van and the percentage read against it without a second palette,
-// and so the brake light a later stage adds has a dark ground to flash on.
+// and so the brake light has a dark ground to flash on.
 export const ROAD_COLORS = {
   surface: '#141414',
   ink: '#F2EFE9',
+  // Fixed like the rest of the Road's palette, and the one warm colour on it:
+  // the Van is the only thing on the Road that ever signals anything.
+  brake: '#E1341E',
 }
 
 // Taller than a normal button: the Van's livery has to be legible on it.
@@ -45,6 +48,19 @@ export const CARGO_SLOTS = {
 
 // How big a stowed Parcel is, in the Van's own coordinates.
 export const PARCEL_STOW_SIZE = 12
+
+// The Van's wheels, in its own coordinates. Each is drawn as its own group so
+// the Drive can turn it about its own hub, which is what makes how far the Van
+// has travelled visible.
+export const WHEELS = [
+  { cx: 20, cy: 41 },
+  { cx: 78, cy: 41 },
+]
+export const WHEEL_RADIUS = 6
+
+// The Van's brake light, at the rear over the closed doors and clear of the
+// livery along the bottom. Unlit for the whole Delivery except the Setback.
+export const BRAKE_LIGHT = { x: 3, y: 32, width: 7, height: 6 }
 
 // The percentage's slot at the far right, held clear of the Van for the whole
 // Drive so the number stays readable and the two never overlap.

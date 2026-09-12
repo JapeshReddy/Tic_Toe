@@ -1,10 +1,14 @@
 import Box from '@mui/material/Box'
+import { motion } from 'motion/react'
 import { DISPLAY_FONT } from '../theme'
 import {
+  BRAKE_LIGHT,
   CARGO_DOOR_RAISED,
   CARGO_OPENING,
   ROAD_COLORS,
   VAN_VIEWBOX,
+  WHEELS,
+  WHEEL_RADIUS,
 } from '../utils/road'
 
 // The Kartel Van, side on and heading right: a bone box with hard black rules,
@@ -14,8 +18,10 @@ import {
 // van would disappear into the Road the moment the palette flipped.
 //
 // Geometry only — the Road decides how big the Van is, so the drawing is a
-// viewBox and nothing else.
-export default function Van({ doorRef, ...props }) {
+// viewBox and nothing else. The two things the Drive reaches into are handed in
+// as motion values: the angle its wheels have turned through, and whether the
+// brake light is lit.
+export default function Van({ doorRef, wheelAngle, braking }) {
   return (
     <Box
       component="svg"
@@ -25,7 +31,6 @@ export default function Van({ doorRef, ...props }) {
       aria-hidden="true"
       focusable="false"
       sx={{ display: 'block', width: '100%', height: '100%' }}
-      {...props}
     >
       <g fill={ROAD_COLORS.ink} stroke={ROAD_COLORS.surface} strokeWidth="2">
         {/* Cargo box and cab as one outline, with the windshield raked back
@@ -92,20 +97,50 @@ export default function Van({ doorRef, ...props }) {
         </g>
       </g>
 
+      {/* The brake light, at the rear over the closed doors. Unlit — which is
+          how it is drawn — for the whole Delivery except the Setback, when it
+          is the one thing on the Van that says the driver has backed off. */}
+      <motion.rect
+        x={BRAKE_LIGHT.x}
+        y={BRAKE_LIGHT.y}
+        width={BRAKE_LIGHT.width}
+        height={BRAKE_LIGHT.height}
+        fill={ROAD_COLORS.brake}
+        style={{ opacity: braking }}
+      />
+
       {/* Tyres outlined in bone: a dark wheel on a dark road would otherwise
-          vanish, leaving the Van looking like it is floating. */}
-      <g
-        fill={ROAD_COLORS.surface}
-        stroke={ROAD_COLORS.ink}
-        strokeWidth="2"
-      >
-        <circle cx="20" cy="41" r="6" />
-        <circle cx="78" cy="41" r="6" />
-      </g>
-      <g fill={ROAD_COLORS.ink}>
-        <circle cx="20" cy="41" r="2" />
-        <circle cx="78" cy="41" r="2" />
-      </g>
+          vanish, leaving the Van looking like it is floating. Each wheel is its
+          own group so the Drive can turn it — Motion rotates an SVG element
+          about its own bounding box, which is the wheel's hub — and carries a
+          cross of spokes, without which a turning wheel looks like a still one. */}
+      {WHEELS.map(({ cx, cy }) => (
+        <motion.g key={cx} style={{ rotate: wheelAngle }}>
+          <circle
+            cx={cx}
+            cy={cy}
+            r={WHEEL_RADIUS}
+            fill={ROAD_COLORS.surface}
+            stroke={ROAD_COLORS.ink}
+            strokeWidth="2"
+          />
+          <g stroke={ROAD_COLORS.ink} strokeWidth="1.5">
+            <line
+              x1={cx - WHEEL_RADIUS + 2}
+              y1={cy}
+              x2={cx + WHEEL_RADIUS - 2}
+              y2={cy}
+            />
+            <line
+              x1={cx}
+              y1={cy - WHEEL_RADIUS + 2}
+              x2={cx}
+              y2={cy + WHEEL_RADIUS - 2}
+            />
+          </g>
+          <circle cx={cx} cy={cy} r="2" fill={ROAD_COLORS.ink} />
+        </motion.g>
+      ))}
 
       {/* Low on the bodywork, clear of the cargo bay above: the Loading stage
           stows the two Parcels under the roof, and a wordmark running through

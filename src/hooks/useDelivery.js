@@ -1,6 +1,23 @@
 import { useEffect, useRef } from 'react'
-import { useAnimate } from 'motion/react'
+import { useAnimate, useMotionValue, useTransform } from 'motion/react'
 import { DELIVERY_STATES } from '../utils/constants'
+import {
+  BRAKE_LIGHT,
+  DEPARTURE_DISTANCE,
+  DEPARTURE_MOTION,
+  DRIVE_PHASES,
+  driveTravel,
+  isMoving,
+  percentageAt,
+  PUFF_CYCLE,
+  PUFF_FADE,
+  PUFF_STAGGER,
+  PUFF_TIMING,
+  READOUT_FADE,
+  readoutText,
+  vanTravelAt,
+  wheelAngleFor,
+} from '../utils/drive'
 import {
   buildLoadingSteps,
   cargoBay,
@@ -55,13 +72,16 @@ const vanRect = (lane) => ({
   height: VAN_HEIGHT,
 })
 
-// The Delivery's timeline: the Loading stage, driven as one awaited sequence
-// rather than as reducer states or animation callbacks (ADR-0004). What it
-// does — the order of the Dots and Parcels — is decided by buildLoadingSteps;
-// this only carries it out.
+// The Delivery's timeline, driven as one awaited sequence rather than as
+// reducer states or animation callbacks (ADR-0004). What it does — the order of
+// the Dots and Parcels, the legs of the Drive — is decided by buildLoadingSteps
+// and DRIVE_PHASES; this only carries it out.
 //
 // The hook owns every element it has to reach, so the login card stays
-// presentational and the timeline has one home rather than one per stage.
+// presentational and the timeline has one home rather than one per stage. The
+// Drive's fine detail — where the Van is on the Road, how far it is tilted, its
+// fade, its brake light — is motion values rather than React state, because it
+// changes every frame and nothing gates on it.
 export function useDelivery({ delivery, parcels, onArrive }) {
   const [scope, animate] = useAnimate()
   const usernameField = useRef(null)
@@ -69,16 +89,67 @@ export function useDelivery({ delivery, parcels, onArrive }) {
   const vanLane = useRef(null)
   const cargoDoor = useRef(null)
 
+  const road = useRef(null)
+  const distance = useMotionValue(0)
+  const tilt = useMotionValue(0)
+  const vanOpacity = useMotionValue(1)
+  const braking = useMotionValue(0)
+  const readoutOpacity = useMotionValue(1)
+  // The Road's drawn width, which only the Drive can say: it is measured when
+  // the Van sets off, so a card that has been resized mid-Delivery is still
+  // measured as it is now.
+  const travel = useRef(0)
+  const wheelAngle = useTransform(distance, wheelAngleFor)
+  const readout = useTransform(distance, (moved) =>
+    readoutText(percentageAt(moved, travel.current)),
+  )
+
+  const drive = {
+    road,
+    distance,
+    tilt,
+    vanOpacity,
+    braking,
+    wheelAngle,
+    readout,
+    readoutOpacity,
+  }
+
   useEffect(() => {
     if (delivery !== DELIVERY_STATES.DELIVERING) return undefined
     const layer = scope.current
     if (!layer) return undefined
 
     let cancelled = false
+    const roadEl = road.current
+    const puffs = roadEl ? [...roadEl.querySelectorAll('[data-puff]')] : []
+    let engine = null
+
+    // The exhaust runs with the Van's motion, so it stops the moment the Van
+    // does. Cutting it lets the last puffs go rather than freezing one in the
+    // air beside a Van that has come to a stop.
+    const stopEngine = () => {
+      engine?.forEach((animation) => animation.stop())
+      engine = null
+    }
+    const setEngine = (running) => {
+      if (running === Boolean(engine)) return
+      stopEngine()
+      if (running) {
+        engine = puffs.map((puff, index) =>
+          animate(puff, PUFF_CYCLE, {
+            ...PUFF_TIMING,
+            delay: index * PUFF_STAGGER,
+          }),
+        )
+      } else {
+        puffs.forEach((puff) => animate(puff, { opacity: 0 }, PUFF_FADE))
+      }
+    }
 
     const run = async () => {
       // Loading starts once the Van is parked: nothing is loaded into a moving
-      // Van, and the Van does not move again until the Drive (#8).
+      // Van, and the Van does not move again until the Drive.
       await wait(DURATIONS.vanRoll)
       if (cancelled) return
 
@@ -157,6 +228,40 @@ export function useDelivery({ delivery, parcels, onArrive }) {
       await wait(DURATIONS.loadingPause)
       if (cancelled) return
 
+      // The Drive: the Van crosses the Road leg by leg, and the percentage it
+      // reads out is only the position it has reached. The Van's tilt rides the
+      // same leg as its position, so it leans back through the Setback and comes
+      // upright again as the Van gathers itself at 50.
+      if (!roadEl) {
+        onArrive()
+        return
+      }
+      travel.current = driveTravel(roadEl.getBoundingClientRect().width)
+
+      for (const phase of DRIVE_PHASES) {
+        if (cancelled) return
+        const leg = { duration: phase.seconds, ease: phase.ease }
+        animate(braking, phase.braking ? 1 : 0, BRAKE_LIGHT)
+        setEngine(isMoving(phase))
+        await Promise.all([
+          animate(distance, vanTravelAt(phase.to, travel.current), leg),
+          animate(tilt, phase.tilt, leg),
+        ])
+      }
+
+      if (cancelled) return
+
+      // Arrival: at 100% the Van carries on past the end of the Road, fading as
+      // it goes, and the readout goes out with it. Nothing is left running
+      // behind it.
+      animate(readoutOpacity, 0, READOUT_FADE)
+      await Promise.all([
+        animate(distance, travel.current + DEPARTURE_DISTANCE, DEPARTURE_MOTION),
+        animate(vanOpacity, 0, DEPARTURE_MOTION),
+      ])
+      if (cancelled) return
+      stopEngine()
+
       onArrive()
     }
 
@@ -164,8 +269,9 @@ export function useDelivery({ delivery, parcels, onArrive }) {
 
     return () => {
       cancelled = true
+      stopEngine()
     }
   }, [delivery, parcels, onArrive, animate, scope])
 
-  return { scope, usernameField, passwordField, vanLane, cargoDoor }
+  return { scope, usernameField, passwordField, vanLane, cargoDoor, drive }
 }

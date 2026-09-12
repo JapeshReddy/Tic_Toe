@@ -31,7 +31,7 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
     [username, password],
   )
 
-  const { scope, usernameField, passwordField, vanLane, cargoDoor } =
+  const { scope, usernameField, passwordField, vanLane, cargoDoor, drive } =
     useDelivery({ delivery, parcels, onArrive })
 
   // X and O's colours, the same the board will use: the Username Parcel carries
@@ -156,6 +156,7 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
             isDelivering={isDelivering}
             vanLaneRef={vanLane}
             cargoDoorRef={cargoDoor}
+            drive={drive}
           />
         </Button>
 
