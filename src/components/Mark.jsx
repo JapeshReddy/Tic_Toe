@@ -1,15 +1,33 @@
 import Box from '@mui/material/Box'
+import { motion } from 'motion/react'
+import { MARK_VARIANTS, SNAP } from '../utils/motion'
+
+const MotionBox = motion.create(Box)
 
 // Renders a player's symbol as pure geometry rather than a text glyph: X is a
 // crossed pair of bars, O is a true ring. X always reads red (primary), O
 // always reads blue (secondary). `size` sets the font-size the em-based
 // dimensions scale from, so one component serves the board, status bar and
 // wordmark. Decorative only — callers provide the accessible label.
-export default function Mark({ symbol, size = '1em', sx }) {
+//
+// `animate` opts into the stamp-in motion. Only the board passes it: the status
+// bar and wordmark re-render on every turn, where a replayed animation reads as
+// flicker rather than feedback.
+export default function Mark({ symbol, size = '1em', sx, animate = false }) {
+  const motionProps = animate
+    ? {
+        variants: MARK_VARIANTS,
+        initial: 'hidden',
+        animate: 'visible',
+        transition: SNAP,
+      }
+    : {}
+
   if (symbol === 'X') {
     return (
-      <Box
+      <MotionBox
         aria-hidden
+        {...motionProps}
         sx={{
           position: 'relative',
           fontSize: size,
@@ -36,8 +54,9 @@ export default function Mark({ symbol, size = '1em', sx }) {
 
   if (symbol === 'O') {
     return (
-      <Box
+      <MotionBox
         aria-hidden
+        {...motionProps}
         sx={{
           fontSize: size,
           width: '0.82em',

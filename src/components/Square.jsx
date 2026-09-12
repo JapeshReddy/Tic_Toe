@@ -44,7 +44,7 @@ export default function Square({ value, index, onClick, disabled }) {
         },
       }}
     >
-      <Mark symbol={value} />
+      <Mark symbol={value} animate />
     </Button>
   )
 }
