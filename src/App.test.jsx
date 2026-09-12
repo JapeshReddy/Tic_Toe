@@ -51,6 +51,26 @@ describe('the login card', () => {
   })
 })
 
+// The Loading layer's place in the card. What it holds and in whose colours is
+// LoadingLayer.test.jsx's business; what matters here is that the card is where
+// it lives, and that it is drawn after the Road it delivers into.
+describe('the login card’s Loading layer', () => {
+  const html = renderToString(<App />)
+
+  it('waits on the card with both Parcels, Username first', () => {
+    const username = html.indexOf('data-parcel="username"')
+
+    expect(username).toBeGreaterThan(-1)
+    expect(html.indexOf('data-parcel="password"')).toBeGreaterThan(username)
+  })
+
+  it('is drawn over the button, so a Parcel can be carried into the Van', () => {
+    expect(html.indexOf('data-parcel="username"')).toBeGreaterThan(
+      html.indexOf('Log in'),
+    )
+  })
+})
+
 // The card as it stands mid-Delivery: static markup for a state the reducer
 // already models, not a drive of the timeline, which is not a test's business
 // (ADR-0004). What it pins is the accessibility contract — the parts of it that

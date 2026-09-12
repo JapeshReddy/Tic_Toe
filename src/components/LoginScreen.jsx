@@ -1,15 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useTheme } from '@mui/material/styles'
 import { motion } from 'motion/react'
 import { DELIVERY_STATES } from '../utils/constants'
+import { buildParcels, PARCEL_KINDS } from '../utils/delivery'
 import { useDelivery } from '../hooks/useDelivery'
 import { SNAP } from '../utils/motion'
 import { ROAD_COLORS, ROAD_HEIGHT } from '../utils/road'
+import LoadingLayer from './LoadingLayer'
 import Road from './Road'
 
 // The login screen as a real card and a real form. Nothing typed is ever
@@ -17,9 +20,26 @@ import Road from './Road'
 export default function LoginScreen({ delivery, onSignIn, onArrive }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const theme = useTheme()
   const isDelivering = delivery === DELIVERY_STATES.DELIVERING
 
-  useDelivery(delivery, onArrive)
+  // Built once from what was typed and then left alone: the fields are locked
+  // for the Delivery, so the Parcels the timeline is given never change under
+  // it. Both fields produce a Parcel whatever was typed, empty included.
+  const parcels = useMemo(
+    () => buildParcels(username, password),
+    [username, password],
+  )
+
+  const { scope, usernameField, passwordField, vanLane, cargoDoor } =
+    useDelivery({ delivery, parcels, onArrive })
+
+  // X and O's colours, the same the board will use: the Username Parcel carries
+  // one and the Password Parcel the other (ADR-0001).
+  const colors = {
+    [PARCEL_KINDS.USERNAME]: theme.palette.primary.main,
+    [PARCEL_KINDS.PASSWORD]: theme.palette.secondary.main,
+  }
 
   const handleSubmit = (event) => {
     // A real form, so Enter from either field submits it just as the button
@@ -37,7 +57,12 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
   }
 
   return (
-    <Card variant="outlined" sx={{ width: '100%' }}>
+    <Card
+      variant="outlined"
+      // The Loading layer is drawn over the whole card and measured against it,
+      // so the card has to be what the layer is positioned within.
+      sx={{ position: 'relative', width: '100%' }}
+    >
       <Stack
         component="form"
         onSubmit={handleSubmit}
@@ -61,6 +86,7 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
         </Typography>
 
         <TextField
+          ref={usernameField}
           label="Username"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
@@ -69,6 +95,7 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
           slotProps={{ htmlInput: lock }}
         />
         <TextField
+          ref={passwordField}
           label="Password"
           type="password"
           value={password}
@@ -125,13 +152,21 @@ export default function LoginScreen({ delivery, onSignIn, onArrive }) {
             Log in
           </Box>
 
-          <Road isDelivering={isDelivering} />
+          <Road
+            isDelivering={isDelivering}
+            vanLaneRef={vanLane}
+            cargoDoorRef={cargoDoor}
+          />
         </Button>
 
         <Typography variant="body2" color="text.secondary">
           Any details work.
         </Typography>
       </Stack>
+
+      {/* Over the whole card, last, so it draws above the fields it lifts Dots
+          out of and above the Road the Parcels are carried into. */}
+      <LoadingLayer scope={scope} parcels={parcels} colors={colors} />
     </Card>
   )
 }

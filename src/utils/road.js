@@ -1,3 +1,5 @@
+import { PARCEL_KINDS } from './delivery'
+
 // The Road's geometry and its fixed palette. The Road is the login button's
 // interior, so these numbers are the button's own dimensions — shared by the
 // button that draws the surface and the Van and percentage drawn on it.
@@ -20,6 +22,29 @@ export const ROAD_PADDING = 12
 // The Van is 2:1, matching the viewBox it is drawn in.
 export const VAN_WIDTH = 84
 export const VAN_HEIGHT = VAN_WIDTH / 2
+
+// The Van's own drawing coordinates. The Road decides how big the Van is, so
+// everything below is stated in the viewBox and scales with the Van.
+export const VAN_VIEWBOX = { width: 96, height: 48 }
+
+// The cargo opening at the Van's rear: dark while the doors are open for
+// loading, and filled by the panel the Loading stage slides down over it.
+export const CARGO_OPENING = { x: 3, y: 9, width: 7, height: 32 }
+
+// Where the door panel rides while the Van is being loaded: raised by exactly
+// its own height, so it clears the opening rather than hanging into it.
+export const CARGO_DOOR_RAISED = -CARGO_OPENING.height
+
+// Where the two Parcels come to rest aboard the Van, side by side under the
+// roof and clear of the wordmark along the bottom of the bodywork. Top-left
+// corners, in the Van's own coordinates.
+export const CARGO_SLOTS = {
+  [PARCEL_KINDS.USERNAME]: { x: 13, y: 10 },
+  [PARCEL_KINDS.PASSWORD]: { x: 28, y: 10 },
+}
+
+// How big a stowed Parcel is, in the Van's own coordinates.
+export const PARCEL_STOW_SIZE = 12
 
 // The percentage's slot at the far right, held clear of the Van for the whole
 // Drive so the number stays readable and the two never overlap.

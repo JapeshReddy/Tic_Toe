@@ -21,10 +21,15 @@ import {
 // percentage is always mounted but invisible until a Delivery starts: keeping
 // its slot occupied from the beginning is what stops the Van's journey ever
 // reaching the number, and what the Drive later measures against.
-export default function Road({ isDelivering }) {
+//
+// `vanLaneRef` and `cargoDoorRef` are handed up to the Delivery's timeline. The
+// lane is what the Loading stage measures, because unlike the Van inside it the
+// lane never moves; the door is what it shuts once both Parcels are aboard.
+export default function Road({ isDelivering, vanLaneRef, cargoDoorRef }) {
   return (
     <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
       <Box
+        ref={vanLaneRef}
         sx={{
           position: 'absolute',
           left: ROAD_PADDING,
@@ -45,7 +50,7 @@ export default function Road({ isDelivering }) {
           transition={VAN_ROLL}
           sx={{ width: VAN_WIDTH, height: VAN_HEIGHT }}
         >
-          <Van />
+          <Van doorRef={cargoDoorRef} />
         </Box>
       </Box>
 

@@ -46,11 +46,6 @@ export const MEDIUM_BLUNDER_RATE = 0.3
 // Delay before the computer plays, so its move feels deliberate (ms).
 export const COMPUTER_MOVE_DELAY = 500
 
-// Stands in for the Delivery's choreography until later tickets fill it in: long
-// enough that a Delivery is unmistakably under way, short enough that nobody is
-// left waiting on it (ms).
-export const DELIVERY_PAUSE_MS = 900
-
 // All winning index triplets on a 3x3 board.
 export const WINNING_LINES = [
   [0, 1, 2],
